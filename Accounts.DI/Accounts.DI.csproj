@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Accounts.Services.Entity\Accounts.Services.Entity.csproj" />
+    <ProjectReference Include="..\Accounts.Repository.MySQL\Accounts.Repository.MySQL.csproj" />
+    <ProjectReference Include="..\Accounts.Repository\Accounts.Repository.csproj" />
+  </ItemGroup>
+</Project>
