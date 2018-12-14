@@ -9,13 +9,14 @@ namespace Accounts.Repository.MySQL.Context
 
         public ContextFactory(string connstring)
         {
-            _connstring = connstring;
+            //_connstring = connstring;
+            _connstring = "Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=accounts";
         }
 
         public ContextFactory()
         {
             _connstring =
-                "Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=account";
+                "Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=accounts";
         }
 
         public AccountsContext CreateDbContext(string[] args)

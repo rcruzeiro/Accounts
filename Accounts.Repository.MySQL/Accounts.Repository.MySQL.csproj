@@ -20,5 +20,9 @@
   <ItemGroup>
     <Folder Include="Context\" />
     <Folder Include="Configurations\" />
+    <Folder Include="Migrations\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Migrations\20181214165747_InitialCreate.cs" />
   </ItemGroup>
 </Project>

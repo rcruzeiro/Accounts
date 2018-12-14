@@ -8,5 +8,6 @@
     <ProjectReference Include="..\Accounts.Services.Entity\Accounts.Services.Entity.csproj" />
     <ProjectReference Include="..\Accounts.Repository.MySQL\Accounts.Repository.MySQL.csproj" />
     <ProjectReference Include="..\Accounts.Repository\Accounts.Repository.csproj" />
+    <ProjectReference Include="..\Accounts.Services.Task\Accounts.Services.Task.csproj" />
   </ItemGroup>
 </Project>

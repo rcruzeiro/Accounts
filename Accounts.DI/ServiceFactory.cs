@@ -1,4 +1,5 @@
 ﻿using Accounts.Services.Entity;
+using Accounts.Services.Task;
 using Microsoft.Extensions.Configuration;
 
 namespace Accounts.DI
@@ -18,6 +19,12 @@ namespace Accounts.DI
         public static UserEntityService GetUserEntityService(IConfiguration configuration)
         {
             return new UserEntityService(DatabaseFactory.GetUserRepository(configuration));
+        }
+
+        public static SaveProfileTaskService GetSaveProfileTaskService(IConfiguration configuration)
+        {
+            return new SaveProfileTaskService(GetGrantEntityService(configuration),
+                                              GetProfileEntityService(configuration));
         }
     }
 }

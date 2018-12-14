@@ -15,17 +15,17 @@
       "launchUrl": "docs",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "DB_CONNECTION_NAME": "Default"
+        "DB_CONNECTION_NAME": "Local"
       }
     },
     "Accounts.API": {
       "commandName": "Project",
-      "launchBrowser": false,
+      "launchBrowser": true,
       "launchUrl": "docs",
       "applicationUrl": "https://localhost:5001;http://localhost:5000",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "DB_CONNETION_NAME": "Default"
+        "DB_CONNECTION_NAME": "Local"
       }
     }
   }

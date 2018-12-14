@@ -10,5 +10,11 @@ namespace Accounts.Entities
         public ActionType Action { get; set; }
         public virtual List<ProfileGrant> Profiles { get; set; }
         public virtual List<UserGrant> Users { get; set; }
+
+        public Grant()
+        {
+            Profiles = new List<ProfileGrant>();
+            Users = new List<UserGrant>();
+        }
     }
 }

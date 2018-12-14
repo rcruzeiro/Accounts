@@ -8,7 +8,7 @@ namespace Accounts.Repository.MySQL.Configurations
     {
         public void Configure(EntityTypeBuilder<UserGrant> builder)
         {
-            builder.ToTable("user_permissions");
+            builder.ToTable("user_grants");
             builder.HasKey(up => new { up.UserID, up.GrantID });
             //relationships
             builder.HasOne<User>(up => up.User)

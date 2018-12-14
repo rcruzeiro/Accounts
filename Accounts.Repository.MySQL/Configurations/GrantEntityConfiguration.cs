@@ -8,7 +8,7 @@ namespace Accounts.Repository.MySQL.Configurations
     {
         public void Configure(EntityTypeBuilder<Grant> builder)
         {
-            builder.ToTable("permissions");
+            builder.ToTable("grants");
             builder.HasKey(p => p.ID);
             builder.Property(p => p.ClientID).HasColumnName("clientId").IsRequired();
             builder.Property(p => p.Code).HasColumnName("code").IsRequired();
@@ -18,7 +18,7 @@ namespace Accounts.Repository.MySQL.Configurations
             builder.Property(p => p.Active).HasColumnName("active");
             builder.Property(p => p.CreatedAt).HasColumnName("createdAt").HasColumnType("datetime").HasDefaultValueSql("now()");
             builder.Property(p => p.UpdatedAt).HasColumnName("updatedAt").HasColumnType("datetime").HasDefaultValueSql("now()");
-            builder.Property(p => p.RemovedAt).HasColumnName("removedAt").HasColumnType("datetime").HasDefaultValueSql("now()");
+            builder.Property(p => p.RemovedAt).HasColumnName("removedAt").HasColumnType("datetime");
             //relationships
             builder.HasMany<ProfileGrant>(p => p.Profiles)
                    .WithOne(pp => pp.Grant)

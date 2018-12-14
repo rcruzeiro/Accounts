@@ -11,7 +11,7 @@ namespace Accounts.API.Controllers
         protected readonly IConfiguration _configuration;
         readonly ICacheService _cache;
 
-        protected BaseController([FromServices]IConfiguration configuration)
+        protected BaseController(IConfiguration configuration)
         {
             _configuration = configuration;
             _cache = CacheFactory.Instance.Redis(
@@ -21,7 +21,7 @@ namespace Accounts.API.Controllers
                 _configuration.GetValue<int>("Redis:Expires"));
         }
 
-        public bool ExistsInCache(string key)
+        protected bool ExistsInCache(string key)
         {
             try
             {
@@ -31,7 +31,7 @@ namespace Accounts.API.Controllers
             { throw ex; }
         }
 
-        public T GetCache<T>(string key)
+        protected T GetCache<T>(string key)
         {
             try
             {
@@ -41,7 +41,7 @@ namespace Accounts.API.Controllers
             { throw ex; }
         }
 
-        public void SetCache(string key, object value, int? minutesToExpire = null)
+        protected void SetCache(string key, object value, int? minutesToExpire = null)
         {
             try
             {
@@ -51,7 +51,7 @@ namespace Accounts.API.Controllers
             { throw ex; }
         }
 
-        public void RemoveCache(string key)
+        protected void RemoveCache(string key)
         {
             try
             {
@@ -61,7 +61,7 @@ namespace Accounts.API.Controllers
             { throw ex; }
         }
 
-        public void ClearCache()
+        protected void ClearCache()
         {
             try
             {

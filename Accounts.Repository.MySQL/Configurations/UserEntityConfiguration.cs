@@ -13,13 +13,14 @@ namespace Accounts.Repository.MySQL.Configurations
             builder.Property(u => u.ClientID).HasColumnName("clientId").IsRequired();
             builder.Property(u => u.Name).HasColumnName("name").IsRequired();
             builder.Property(u => u.Email).HasColumnName("email").IsRequired();
+            builder.Property(u => u.Username).HasColumnName("username").IsRequired();
             builder.Property(u => u.Password).HasColumnName("password").IsRequired();
             builder.Property(u => u.LocationID).HasColumnName("locationId");
             builder.Property(u => u.LastLogin).HasColumnName("lastLogin").HasColumnType("datetime");
             builder.Property(u => u.Active).HasColumnName("active");
             builder.Property(u => u.CreatedAt).HasColumnName("createdAt").HasColumnType("datetime").HasDefaultValueSql("now()");
             builder.Property(u => u.UpdatedAt).HasColumnName("updatedAt").HasColumnType("datetime").HasDefaultValueSql("now()");
-            builder.Property(u => u.RemovedAt).HasColumnName("removedAt").HasColumnType("datetime").HasDefaultValueSql("now()");
+            builder.Property(u => u.RemovedAt).HasColumnName("removedAt").HasColumnType("datetime");
             //relationships
             builder.HasMany<UserProfile>(u => u.Profiles)
                    .WithOne(up => up.User)

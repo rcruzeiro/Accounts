@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Core.Framework.Entities;
 using Core.Framework.Repository;
 using Microsoft.EntityFrameworkCore;
+using Accounts.Entities;
 
 namespace Accounts.Repository.MySQL
 {
@@ -17,6 +18,7 @@ namespace Accounts.Repository.MySQL
         protected BaseRepository(DbContext context)
         {
             _context = context;
+            _context.Database.EnsureCreated();
             _context.Database.Migrate();
         }
 

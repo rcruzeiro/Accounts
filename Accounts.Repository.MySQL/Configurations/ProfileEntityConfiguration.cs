@@ -16,7 +16,7 @@ namespace Accounts.Repository.MySQL.Configurations
             builder.Property(p => p.Active).HasColumnName("active");
             builder.Property(p => p.CreatedAt).HasColumnName("createdAt").HasColumnType("datetime").HasDefaultValueSql("now()");
             builder.Property(p => p.UpdatedAt).HasColumnName("updatedAt").HasColumnType("datetime").HasDefaultValueSql("now()");
-            builder.Property(p => p.RemovedAt).HasColumnName("removedAt").HasColumnType("datetime").HasDefaultValueSql("now()");
+            builder.Property(p => p.RemovedAt).HasColumnName("removedAt").HasColumnType("datetime");
             //relationships
             builder.HasMany<ProfileGrant>(p => p.Grants)
                    .WithOne(pp => pp.Profile)

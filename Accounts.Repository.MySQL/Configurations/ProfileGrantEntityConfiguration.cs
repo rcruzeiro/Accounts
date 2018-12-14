@@ -8,7 +8,7 @@ namespace Accounts.Repository.MySQL.Configurations
     {
         public void Configure(EntityTypeBuilder<ProfileGrant> builder)
         {
-            builder.ToTable("profile_permissions");
+            builder.ToTable("profile_grants");
             builder.HasKey(pp => new { pp.ProfileID, pp.GrantID });
             //relationships
             builder.HasOne<Profile>(pp => pp.Profile)

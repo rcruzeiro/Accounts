@@ -10,8 +10,14 @@ namespace Accounts.Entities
         public string Email { get; set; }
         public string Password { get; set; }
         public string LocationID { get; set; }
-        public DateTimeOffset LastLogin { get; set; }
+        public DateTimeOffset? LastLogin { get; set; }
         public virtual List<UserProfile> Profiles { get; set; }
         public virtual List<UserGrant> Grants { get; set; }
+
+        public User()
+        {
+            Profiles = new List<UserProfile>();
+            Grants = new List<UserGrant>();
+        }
     }
 }

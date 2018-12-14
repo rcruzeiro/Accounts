@@ -16,16 +16,28 @@ namespace Accounts.API.Controllers
         public GrantsController(IConfiguration configuration)
             : base(configuration)
         { }
-
+        /// <summary>
+        /// Get all grants.
+        /// </summary>
+        /// <returns>A list with all the grants objects.</returns>
+        /// <param name="client">Client identifier.</param>
+        /// <response code="200">Get was successful.</response>
+        /// <response code="500">Internal Server Error. See response message for details.</response>
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(GetGrantsResponse), 200)]
+        [ProducesResponseType(typeof(GetGrantsResponse), 500)]
         [HttpGet]
         public ActionResult<GetGrantsResponse> Get([FromHeader]string client)
         {
             GetGrantsResponse response;
-            string responseCode = $"GET_PERMISSIONS_{client}";
+            string responseCode = $"GET_GRANTS_{client}";
             string cacheKey = responseCode;
 
             try
             {
+                if (string.IsNullOrEmpty(client))
+                    throw new InvalidOperationException("client cannot be null.");
+
                 if (ExistsInCache(cacheKey))
                     response = GetCache<GetGrantsResponse>(cacheKey);
                 else
@@ -38,7 +50,7 @@ namespace Accounts.API.Controllers
                     };
                     grants.ForEach(grant =>
                         response.Data.Add(grant.Adapt()));
-                    SetCache(cacheKey, response);
+                    SetCache(cacheKey, response, 10080);
                 }
 
                 return Ok(response);
@@ -50,19 +62,32 @@ namespace Accounts.API.Controllers
                     StatusCode = "500"
                 };
                 response.Messages.Add(ResponseMessage.Create(ex, responseCode));
-                return StatusCode(500, responseCode);
+                return StatusCode(500, response);
             }
         }
-
+        /// <summary>
+        /// Get the specified grant.
+        /// </summary>
+        /// <returns>The grant object.</returns>
+        /// <param name="client">Client identifier.</param>
+        /// <param name="id">Grant identifier.</param>
+        /// <response code="200">Get was successful.</response>
+        /// <response code="500">Internal Server Error. See response message for details.</response>
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(GetGrantResponse), 200)]
+        [ProducesResponseType(typeof(GetGrantResponse), 500)]
         [HttpGet("{id}")]
         public ActionResult<GetGrantResponse> Get([FromHeader]string client, [FromRoute]int id)
         {
             GetGrantResponse response;
-            string responseCode = $"GET_PERMISSION_{client}_{id}";
+            string responseCode = $"GET_GRANT_{client}_{id}";
             string cacheKey = responseCode;
 
             try
             {
+                if (string.IsNullOrEmpty(client))
+                    throw new InvalidOperationException("client cannot be null.");
+
                 if (ExistsInCache(cacheKey))
                     response = GetCache<GetGrantResponse>(cacheKey);
                 else
@@ -74,7 +99,7 @@ namespace Accounts.API.Controllers
                         StatusCode = "200",
                         Data = grant.Adapt()
                     };
-                    SetCache(cacheKey, response);
+                    SetCache(cacheKey, response, 10080);
                 }
 
                 return Ok(response);
@@ -90,16 +115,29 @@ namespace Accounts.API.Controllers
                 return StatusCode(500, response);
             }
         }
-
-        [HttpGet("{code}")]
+        /// <summary>
+        /// Get the specified grant by code.
+        /// </summary>
+        /// <returns>The grant object.</returns>
+        /// <param name="client">Client identifier.</param>
+        /// <param name="code">Grant identifier.</param>
+        /// <response code="200">Get was successful.</response>
+        /// <response code="500">Internal Server Error. See response message for details.</response>
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(GetGrantResponse), 200)]
+        [ProducesResponseType(typeof(GetGrantResponse), 500)]
+        [HttpGet("code/{code}")]
         public ActionResult<GetGrantResponse> Get([FromHeader]string client, [FromRoute]string code)
         {
             GetGrantResponse response;
-            string responseCode = $"GET_PERMISSION_{client}_{code}";
+            string responseCode = $"GET_GRANT_{client}_{code}";
             string cacheKey = responseCode;
 
             try
             {
+                if (string.IsNullOrEmpty(client))
+                    throw new InvalidOperationException("client cannot be null.");
+
                 if (ExistsInCache(cacheKey))
                     response = GetCache<GetGrantResponse>(cacheKey);
                 else
@@ -111,7 +149,7 @@ namespace Accounts.API.Controllers
                         StatusCode = "200",
                         Data = grant.Adapt()
                     };
-                    SetCache(cacheKey, response);
+                    SetCache(cacheKey, response, 10080);
                 }
 
                 return Ok(response);
@@ -126,15 +164,28 @@ namespace Accounts.API.Controllers
                 return StatusCode(500, response);
             }
         }
-
+        /// <summary>
+        /// Create a new grant.
+        /// </summary>
+        /// <returns>The create status code.</returns>
+        /// <param name="client">Client identifier.</param>
+        /// <param name="request">New grant info.</param>
+        /// <response code="200">Create was successful.</response>
+        /// <response code="500">Internal Server Error. See response message for details.</response>
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(NewGrantResponse), 200)]
+        [ProducesResponseType(typeof(NewGrantResponse), 500)]
         [HttpPost]
         public async Task<ActionResult<NewGrantResponse>> Post([FromHeader]string client, [FromBody]CreateGrantRequest request)
         {
             NewGrantResponse response = new NewGrantResponse();
-            string responseCode = $"CREATE_PERMISSION_{client}";
+            string responseCode = $"CREATE_GRANT_{client}";
 
             try
             {
+                if (string.IsNullOrEmpty(client))
+                    throw new InvalidOperationException("client cannot be null.");
+
                 if (client != request.ClientID)
                     throw new InvalidOperationException("invalid client ID in request object.");
 
@@ -160,15 +211,28 @@ namespace Accounts.API.Controllers
                 return StatusCode(500, response);
             }
         }
-
+        /// <summary>
+        /// Delete the specified grant.
+        /// </summary>
+        /// <returns>The delete status code.</returns>
+        /// <param name="client">Client identifier.</param>
+        /// <param name="id">Grant identifier.</param>
+        /// <response code="200">Delete was successful.</response>
+        /// <response code="500">Internal Server Error. See response message for details.</response>
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(NewGrantResponse), 200)]
+        [ProducesResponseType(typeof(NewGrantResponse), 500)]
         [HttpDelete("{id}")]
         public async Task<ActionResult<NewGrantResponse>> Delete([FromHeader]string client, [FromRoute]int id)
         {
             NewGrantResponse response = new NewGrantResponse();
-            string responseCode = $"DELETE_PERMISSION_{client}_{id}";
+            string responseCode = $"DELETE_GRANT_{client}_{id}";
 
             try
             {
+                if (string.IsNullOrEmpty(client))
+                    throw new InvalidOperationException("client cannot be null.");
+
                 var factory = AccountsFactory.Instance.GetGrant(_configuration);
                 await factory.Delete(client, id);
                 response.StatusCode = "200";

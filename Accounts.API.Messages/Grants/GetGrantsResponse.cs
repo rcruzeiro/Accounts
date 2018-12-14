@@ -5,5 +5,10 @@ using Core.Framework.API.Messages;
 namespace Accounts.API.Messages.Grants
 {
     public class GetGrantsResponse : BaseResponse<List<GrantDTO>>
-    { }
+    {
+        public GetGrantsResponse()
+        {
+            Data = new List<GrantDTO>();
+        }
+    }
 }

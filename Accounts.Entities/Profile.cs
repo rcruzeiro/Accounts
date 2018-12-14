@@ -8,5 +8,11 @@ namespace Accounts.Entities
         public string Description { get; set; }
         public virtual List<ProfileGrant> Grants { get; set; }
         public virtual List<UserProfile> Users { get; set; }
+
+        public Profile()
+        {
+            Grants = new List<ProfileGrant>();
+            Users = new List<UserProfile>();
+        }
     }
 }

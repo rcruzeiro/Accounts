@@ -9,6 +9,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Grants\" />
+    <Folder Include="Profiles\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Accounts.DTO\Accounts.DTO.csproj" />
