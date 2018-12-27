@@ -21,10 +21,9 @@ namespace Accounts.DI
             return new UserEntityService(DatabaseFactory.GetUserRepository(configuration));
         }
 
-        public static SaveProfileTaskService GetSaveProfileTaskService(IConfiguration configuration)
+        public static SaveProfileGrantsTaskService GetSaveProfileGrantsTaskService(IConfiguration configuration)
         {
-            return new SaveProfileTaskService(GetGrantEntityService(configuration),
-                                              GetProfileEntityService(configuration));
+            return new SaveProfileGrantsTaskService(GetGrantEntityService(configuration), GetProfileEntityService(configuration));
         }
     }
 }

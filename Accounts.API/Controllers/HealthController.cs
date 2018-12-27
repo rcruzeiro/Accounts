@@ -33,7 +33,7 @@ namespace Accounts.API.Controllers
         [ProducesResponseType(typeof(ClearCacheResponse), 200)]
         [ProducesResponseType(typeof(ClearCacheResponse), 500)]
         [HttpDelete("cache")]
-        public ActionResult<ClearCacheResponse> Delete()
+        ActionResult<ClearCacheResponse> Delete()
         {
             ClearCacheResponse response = new ClearCacheResponse();
             string responseCode = "CLEAR_CACHE";

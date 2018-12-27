@@ -25,8 +25,7 @@ namespace Accounts.Adapter
                 profile.Grants.ForEach(grant =>
                     p.Grants.Add(new ProfileGrant
                     {
-                        GrantID = grant.ID,
-                        Grant = grant.Adapt()
+                        GrantID = grant.ID
                     }));
 
                 return p;

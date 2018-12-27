@@ -8,4 +8,7 @@
     <ProjectReference Include="..\Accounts.Services.Entity\Accounts.Services.Entity.csproj" />
     <ProjectReference Include="..\Accounts.Entities\Accounts.Entities.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="SaveProfileTaskService.cs" />
+  </ItemGroup>
 </Project>

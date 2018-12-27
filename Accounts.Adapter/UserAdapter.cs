@@ -21,6 +21,7 @@ namespace Accounts.Adapter
                     Email = user.Email,
                     Username = user.Username,
                     Password = user.Password,
+                    LocationID = user.LocationID,
                     LastLogin = user.LastLogin,
                     Active = user.Active
                 };
@@ -59,7 +60,7 @@ namespace Accounts.Adapter
                     Name = user.Name,
                     Email = user.Email,
                     Username = user.Username,
-                    Password = user.Password,
+                    LocationID = user.LocationID,
                     LastLogin = user.LastLogin,
                     Active = user.Active
                 };

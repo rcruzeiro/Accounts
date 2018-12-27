@@ -41,11 +41,11 @@ namespace Accounts.API.Controllers
             { throw ex; }
         }
 
-        protected void SetCache(string key, object value, int? minutesToExpire = null)
+        protected void SetCache(string key, object value, int? secondsToExpire = null)
         {
             try
             {
-                _cache.Set(key, JsonConvert.SerializeObject(value), minutesToExpire);
+                _cache.Set(key, JsonConvert.SerializeObject(value), secondsToExpire);
             }
             catch (Exception ex)
             { throw ex; }

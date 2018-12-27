@@ -6,13 +6,7 @@ namespace Accounts.Entities
     {
         public string Title { get; set; }
         public string Description { get; set; }
-        public virtual List<ProfileGrant> Grants { get; set; }
-        public virtual List<UserProfile> Users { get; set; }
-
-        public Profile()
-        {
-            Grants = new List<ProfileGrant>();
-            Users = new List<UserProfile>();
-        }
+        public virtual List<ProfileGrant> Grants { get; set; } = new List<ProfileGrant>();
+        public virtual List<UserProfile> Users { get; set; } = new List<UserProfile>();
     }
 }

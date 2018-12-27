@@ -31,7 +31,7 @@ namespace Accounts.API
                 {
                     Title = "User Repository",
                     Version = "v1",
-                    Description = "Microservice for storing user accounts"
+                    Description = "Microservice for storing user accounts with OAuth framework."
                 });
                 string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);

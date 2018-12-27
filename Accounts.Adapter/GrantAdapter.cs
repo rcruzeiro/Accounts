@@ -6,44 +6,44 @@ namespace Accounts.Adapter
 {
     public static class GrantAdapter
     {
-        public static Grant Adapt(this GrantDTO permission)
+        public static Grant Adapt(this GrantDTO grant)
         {
             try
             {
-                if (permission == null)
-                    throw new ArgumentNullException(nameof(permission));
+                if (grant == null)
+                    throw new ArgumentNullException(nameof(grant));
 
                 return new Grant
                 {
-                    ID = permission.ID,
-                    ClientID = permission.ClientID,
-                    Code = permission.Code,
-                    Title = permission.Title,
-                    Description = permission.Description,
-                    Action = (ActionType)permission.Action,
-                    Active = permission.Active
+                    ID = grant.ID,
+                    ClientID = grant.ClientID,
+                    Code = grant.Code,
+                    Title = grant.Title,
+                    Description = grant.Description,
+                    Action = (ActionType)grant.Action,
+                    Active = grant.Active
                 };
             }
             catch (Exception ex)
             { throw ex; }
         }
 
-        public static GrantDTO Adapt(this Grant permission)
+        public static GrantDTO Adapt(this Grant grant)
         {
             try
             {
-                if (permission == null)
-                    throw new ArgumentNullException(nameof(permission));
+                if (grant == null)
+                    throw new ArgumentNullException(nameof(grant));
 
                 return new GrantDTO
                 {
-                    ID = permission.ID,
-                    ClientID = permission.ClientID,
-                    Code = permission.Code,
-                    Title = permission.Title,
-                    Description = permission.Description,
-                    Action = (int)permission.Action,
-                    Active = permission.Active
+                    ID = grant.ID,
+                    ClientID = grant.ClientID,
+                    Code = grant.Code,
+                    Title = grant.Title,
+                    Description = grant.Description,
+                    Action = (int)grant.Action,
+                    Active = grant.Active
                 };
             }
             catch (Exception ex)

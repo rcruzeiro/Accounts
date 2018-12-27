@@ -29,9 +29,9 @@ namespace Accounts.DI
             return ServiceFactory.GetUserEntityService(configuration);
         }
 
-        public SaveProfileTaskService GetSaveProfile(IConfiguration configuration)
+        public SaveProfileGrantsTaskService GetSaveProfileGrants(IConfiguration configuration)
         {
-            return ServiceFactory.GetSaveProfileTaskService(configuration);
+            return ServiceFactory.GetSaveProfileGrantsTaskService(configuration);
         }
     }
 }

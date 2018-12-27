@@ -8,12 +8,7 @@ namespace Accounts.DTO
         public string ClientID { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
-        public List<GrantDTO> Grants { get; set; }
+        public List<GrantDTO> Grants { get; set; } = new List<GrantDTO>();
         public bool Active { get; set; }
-
-        public ProfileDTO()
-        {
-            Grants = new List<GrantDTO>();
-        }
     }
 }

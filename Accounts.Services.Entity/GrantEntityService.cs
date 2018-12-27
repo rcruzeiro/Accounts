@@ -54,14 +54,14 @@ namespace Accounts.Services.Entity
             { throw ex; }
         }
 
-        public async Task Save(Grant permission)
+        public async Task Save(Grant grant)
         {
             try
             {
-                if (permission.ID == default(int))
-                    await _repository.AddAsync(permission);
+                if (grant.ID == default(int))
+                    await _repository.AddAsync(grant);
                 else
-                    _repository.Update(permission);
+                    _repository.Update(grant);
 
                 await _repository.SaveAsync();
             }
@@ -69,11 +69,11 @@ namespace Accounts.Services.Entity
             { throw ex; }
         }
 
-        public async Task Delete(Grant permission)
+        public async Task Delete(Grant grant)
         {
             try
             {
-                _repository.Remove(permission);
+                _repository.Remove(grant);
                 await _repository.SaveAsync();
             }
             catch (Exception ex)

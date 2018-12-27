@@ -11,13 +11,7 @@ namespace Accounts.Entities
         public string Password { get; set; }
         public string LocationID { get; set; }
         public DateTimeOffset? LastLogin { get; set; }
-        public virtual List<UserProfile> Profiles { get; set; }
-        public virtual List<UserGrant> Grants { get; set; }
-
-        public User()
-        {
-            Profiles = new List<UserProfile>();
-            Grants = new List<UserGrant>();
-        }
+        public virtual List<UserProfile> Profiles { get; set; } = new List<UserProfile>();
+        public virtual List<UserGrant> Grants { get; set; } = new List<UserGrant>();
     }
 }

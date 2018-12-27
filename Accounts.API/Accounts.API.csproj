@@ -21,7 +21,7 @@
         <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
         <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1" />
-        <PackageReference Include="Core.Framework.Cache" Version="1.2.1" />
+        <PackageReference Include="Core.Framework.Cache" Version="1.2.3" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
         <PackageReference Include="Microsoft.AspNetCore.App" />
         <PackageReference Include="Microsoft.AspNetCore.Diagnostics" Version="2.2.0" />

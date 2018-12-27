@@ -12,6 +12,7 @@ COPY Accounts.Entities/Accounts.Entities.csproj Accounts.Entities/
 COPY Accounts.API.Messages/Accounts.API.Messages.csproj Accounts.API.Messages/
 COPY Accounts.DI/Accounts.DI.csproj Accounts.DI/
 COPY Accounts.Services.Entity/Accounts.Services.Entity.csproj Accounts.Services.Entity/
+COPY Accounts.Services.Task/Accounts.Services.Task.csproj Accounts.Services.Task/
 COPY Accounts.Repository/Accounts.Repository.csproj Accounts.Repository/
 COPY Accounts.Repository.MySQL/Accounts.Repository.MySQL.csproj Accounts.Repository.MySQL/
 COPY docker-compose.dcproj ./
