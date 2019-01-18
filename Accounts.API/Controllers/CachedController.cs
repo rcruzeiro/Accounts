@@ -1,4 +1,5 @@
 ﻿using System;
+using Accounts.DTO;
 using Core.Framework.Cache;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -6,21 +7,25 @@ using Newtonsoft.Json;
 
 namespace Accounts.API.Controllers
 {
-    public abstract class BaseController : Controller
+    public abstract class CachedController : Controller
     {
         protected readonly IConfiguration _configuration;
         readonly ICacheService _cache;
 
-        protected BaseController(IConfiguration configuration)
+        protected CachedController(IConfiguration configuration, [FromServices]RedisDTO redisConfiguration)
         {
             _configuration = configuration;
+
+            #region Cache configuration
             _cache = CacheFactory.Instance.Redis(
-                _configuration.GetValue<string>("Redis:Endpoint"),
-                _configuration.GetValue<int>("Redis:Database"));
+                redisConfiguration.Endpoint,
+                redisConfiguration.Database);
             _cache.Expires = TimeSpan.FromMinutes(
-                _configuration.GetValue<int>("Redis:Expires"));
+                redisConfiguration.Expires);
+            #endregion
         }
 
+        #region Cache Members
         protected bool ExistsInCache(string key)
         {
             try
@@ -31,7 +36,7 @@ namespace Accounts.API.Controllers
             { throw ex; }
         }
 
-        protected T GetCache<T>(string key)
+        protected T GetFromCache<T>(string key)
         {
             try
             {
@@ -41,7 +46,7 @@ namespace Accounts.API.Controllers
             { throw ex; }
         }
 
-        protected void SetCache(string key, object value, int? secondsToExpire = null)
+        protected void SetToCache(string key, object value, int? secondsToExpire = null)
         {
             try
             {
@@ -51,7 +56,7 @@ namespace Accounts.API.Controllers
             { throw ex; }
         }
 
-        protected void RemoveCache(string key)
+        protected void RemoveFromCache(string key)
         {
             try
             {
@@ -70,5 +75,6 @@ namespace Accounts.API.Controllers
             catch (Exception ex)
             { throw ex; }
         }
+        #endregion
     }
 }

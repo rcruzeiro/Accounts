@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Text;
+using Accounts.API.Filters;
 using Accounts.API.Messages;
 using Accounts.DTO;
 using Core.Framework.API.Messages;
@@ -9,17 +10,15 @@ using Microsoft.Extensions.Configuration;
 
 namespace Accounts.API.Controllers
 {
+    [ClientFilter]
     [Route("[controller]")]
-    public class AuthorizeController : BaseController
+    public class AuthorizeController : CachedController
     {
         const int daysInCache = 365; //a full year
-        readonly string defaultCacheKey;
 
-        public AuthorizeController(IConfiguration configuration)
-            : base(configuration)
-        {
-            defaultCacheKey = _configuration.GetValue<string>("Keys:AUTHORIZE");
-        }
+        public AuthorizeController(IConfiguration configuration, [FromServices]RedisDTO redis)
+            : base(configuration, redis)
+        { }
         /// <summary>
         /// Authorize an application.
         /// </summary>
@@ -34,39 +33,32 @@ namespace Accounts.API.Controllers
         [HttpPost]
         public ActionResult<AuthorizeResponse> Post([FromHeader]string client, [FromBody]AuthorizeRequest request)
         {
-            AuthorizeResponse response;
-            string responseCode = $"{defaultCacheKey}{client}_{request.ApplicationID}";
+            AuthorizeResponse response = new AuthorizeResponse();
+            string responseCode = $"AUTH_{client}_{request.ApplicationID}";
             string cacheKey = responseCode;
 
             try
             {
                 if (ExistsInCache(cacheKey))
-                    response = GetCache<AuthorizeResponse>(cacheKey);
+                    response.Data = GetFromCache<AuthorizeDTO>(cacheKey);
                 else
                 {
-                    var expiresOn = DateTimeOffset.Now.AddDays(daysInCache);
-                    response = new AuthorizeResponse
-                    {
-                        StatusCode = "200"
-                    };
                     response.Data = new AuthorizeDTO
                     {
                         Token = GenerateToken(client, request.ApplicationID),
-                        ExpiresOn = expiresOn
+                        ExpiresOn = DateTimeOffset.Now.AddDays(daysInCache)
                     };
-                    SetCache(cacheKey,
-                             response,
+                    SetToCache(cacheKey,
+                             response.Data,
                              (int)TimeSpan.FromDays(daysInCache).TotalSeconds);
                 }
 
+                response.StatusCode = 200;
                 return response;
             }
             catch (Exception ex)
             {
-                response = new AuthorizeResponse
-                {
-                    StatusCode = "500"
-                };
+                response.StatusCode = 500;
                 response.Messages.Add(ResponseMessage.Create(ex, responseCode));
                 return StatusCode(500, response);
             }
@@ -86,22 +78,21 @@ namespace Accounts.API.Controllers
         public ActionResult<DeAuthorizeResponse> Delete([FromHeader]string client, [FromBody]AuthorizeRequest request)
         {
             DeAuthorizeResponse response = new DeAuthorizeResponse();
-            string responseCode = $"DEAUTHORIZE_{client}_{request.ApplicationID}";
-            string cacheKey = $"{defaultCacheKey}{client}_{request.ApplicationID}";
+            string cacheKey = $"AUTH_{client}_{request.ApplicationID}";
 
             try
             {
                 if (ExistsInCache(cacheKey))
-                    RemoveCache(cacheKey);
+                    RemoveFromCache(cacheKey);
 
-                response.StatusCode = "200";
-                response.Data = response.StatusCode;
+                response.StatusCode = 200;
+                response.Data = $"Application {request.ApplicationID} is no longer authorized.";
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                response.StatusCode = "500";
-                response.Messages.Add(ResponseMessage.Create(ex, responseCode));
+                response.StatusCode = 500;
+                response.Messages.Add(ResponseMessage.Create(ex, $"DEAUTHORIZE_{client}_{request.ApplicationID}"));
                 return StatusCode(500, response);
             }
         }
@@ -112,7 +103,7 @@ namespace Accounts.API.Controllers
             {
                 SHA256 sHA256 = SHA256.Create();
                 byte[] input = Encoding.ASCII.GetBytes(
-                    $"{defaultCacheKey}{applicationID}_FOR_{client}_IN_{DateTimeOffset.Now}");
+                    $"AUTH_{applicationID}_FOR_{client}_IN_{DateTimeOffset.Now}");
                 byte[] output = sHA256.ComputeHash(input);
                 return Convert.ToBase64String(output);
             }

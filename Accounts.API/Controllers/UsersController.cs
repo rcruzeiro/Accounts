@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Accounts.Adapter;
+using Accounts.API.Filters;
 using Accounts.API.Messages.User;
 using Accounts.DI;
 using Accounts.DTO;
@@ -10,11 +12,12 @@ using Microsoft.Extensions.Configuration;
 
 namespace Accounts.API.Controllers
 {
+    [ClientFilter]
     [Route("[controller]")]
-    public class UsersController : BaseController
+    public class UsersController : CachedController
     {
-        public UsersController(IConfiguration configuration)
-            : base(configuration)
+        public UsersController(IConfiguration configuration, [FromServices]RedisDTO redis)
+            : base(configuration, redis)
         { }
         /// <summary>
         /// Get all users.
@@ -29,38 +32,29 @@ namespace Accounts.API.Controllers
         [HttpGet]
         public ActionResult<GetUsersResponse> Get([FromHeader]string client)
         {
-            GetUsersResponse response;
+            GetUsersResponse response = new GetUsersResponse();
             string responseCode = $"GET_USERS_{client}";
             string cacheKey = responseCode;
 
             try
             {
-                if (string.IsNullOrEmpty(client))
-                    throw new InvalidOperationException("client cannot be null.");
-
                 if (ExistsInCache(cacheKey))
-                    response = GetCache<GetUsersResponse>(cacheKey);
+                    response.Data = GetFromCache<List<UserDTO>>(cacheKey);
                 else
                 {
                     var factory = AccountsFactory.Instance.GetUser(_configuration);
                     var users = factory.GetUsers(client);
-                    response = new GetUsersResponse
-                    {
-                        StatusCode = "200"
-                    };
                     users.ForEach(user =>
                         response.Data.Add(user.Adapt()));
-                    SetCache(cacheKey, response);
+                    SetToCache(cacheKey, response.Data);
                 }
 
+                response.StatusCode = 200;
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                response = new GetUsersResponse
-                {
-                    StatusCode = "500"
-                };
+                response.StatusCode = 500;
                 response.Messages.Add(ResponseMessage.Create(ex, responseCode));
                 return StatusCode(500, response);
             }
@@ -81,18 +75,26 @@ namespace Accounts.API.Controllers
         {
             GetUserResponse response = new GetUserResponse();
             string responseCode = $"GET_USER_{client}_{id}";
+            string cacheKey = responseCode;
 
             try
             {
-                var factory = AccountsFactory.Instance.GetUser(_configuration);
-                var user = factory.GetUser(client, id);
-                response.StatusCode = "200";
-                response.Data = user.Adapt();
+                if (ExistsInCache(cacheKey))
+                    response.Data = GetFromCache<UserDTO>(cacheKey);
+                else
+                {
+                    var factory = AccountsFactory.Instance.GetUser(_configuration);
+                    var user = factory.GetUser(client, id);
+                    response.Data = user.Adapt();
+                    SetToCache(cacheKey, response.Data);
+                }
+
+                response.StatusCode = 200;
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                response.StatusCode = "500";
+                response.StatusCode = 500;
                 response.Messages.Add(ResponseMessage.Create(ex, responseCode));
                 return StatusCode(500, response);
             }
@@ -116,9 +118,6 @@ namespace Accounts.API.Controllers
 
             try
             {
-                if (string.IsNullOrEmpty(client))
-                    throw new InvalidOperationException("client cannot be null.");
-
                 UserDTO dto = new UserDTO
                 {
                     ClientID = client,
@@ -131,13 +130,13 @@ namespace Accounts.API.Controllers
                 };
                 var factory = AccountsFactory.Instance.GetUser(_configuration);
                 await factory.Create(dto.Adapt());
-                response.StatusCode = "200";
-                response.Data = response.StatusCode;
+                response.StatusCode = 200;
+                response.Data = "User created with success.";
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                response.StatusCode = "500";
+                response.StatusCode = 500;
                 response.Messages.Add(ResponseMessage.Create(ex, responseCode));
                 return StatusCode(500, response);
             }

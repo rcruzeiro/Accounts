@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Accounts.Adapter;
-using Accounts.API.Messages;
+using Accounts.API.Filters;
 using Accounts.API.Messages.Profiles;
 using Accounts.DI;
 using Accounts.DTO;
@@ -11,11 +11,12 @@ using Microsoft.Extensions.Configuration;
 
 namespace Accounts.API.Controllers
 {
+    [ClientFilter]
     [Route("[controller]")]
-    public class ProfilesController : BaseController
+    public class ProfilesController : CachedController
     {
-        public ProfilesController(IConfiguration configuration)
-             : base(configuration)
+        public ProfilesController(IConfiguration configuration, [FromServices]RedisDTO redis)
+             : base(configuration, redis)
         { }
         /// <summary>
         /// Get all profiles.
@@ -30,38 +31,29 @@ namespace Accounts.API.Controllers
         [HttpGet]
         public ActionResult<GetProfilesResponse> Get([FromHeader]string client)
         {
-            GetProfilesResponse response;
+            GetProfilesResponse response = new GetProfilesResponse();
             string responseCode = $"GET_PROFILES_{client}";
             string cacheKey = responseCode;
 
             try
             {
-                if (string.IsNullOrEmpty(client))
-                    throw new InvalidOperationException("client cannot be null.");
-
                 if (ExistsInCache(cacheKey))
-                    response = GetCache<GetProfilesResponse>(cacheKey);
+                    response = GetFromCache<GetProfilesResponse>(cacheKey);
                 else
                 {
                     var factory = AccountsFactory.Instance.GetProfile(_configuration);
                     var profiles = factory.GetProfiles(client);
-                    response = new GetProfilesResponse
-                    {
-                        StatusCode = "200"
-                    };
                     profiles.ForEach(profile =>
                         response.Data.Add(profile.Adapt()));
-                    SetCache(cacheKey, response);
+                    SetToCache(cacheKey, response);
                 }
 
+                response.StatusCode = 200;
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                response = new GetProfilesResponse
-                {
-                    StatusCode = "500"
-                };
+                response.StatusCode = 500;
                 response.Messages.Add(ResponseMessage.Create(ex, responseCode));
                 return StatusCode(500, response);
             }
@@ -82,18 +74,26 @@ namespace Accounts.API.Controllers
         {
             GetProfileResponse response = new GetProfileResponse();
             string responseCode = $"GET_PROFILE_{client}_{id}";
+            string cacheKey = responseCode;
 
             try
             {
-                var factory = AccountsFactory.Instance.GetProfile(_configuration);
-                var profile = factory.GetProfile(client, id);
-                response.StatusCode = "200";
-                response.Data = profile.Adapt();
+                if (ExistsInCache(cacheKey))
+                    response.Data = GetFromCache<ProfileDTO>(cacheKey);
+                else
+                {
+                    var factory = AccountsFactory.Instance.GetProfile(_configuration);
+                    var profile = factory.GetProfile(client, id);
+                    response.Data = profile.Adapt();
+                    SetToCache(cacheKey, response.Data);
+                }
+
+                response.StatusCode = 200;
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                response.StatusCode = "500";
+                response.StatusCode = 500;
                 response.Messages.Add(ResponseMessage.Create(ex, responseCode));
                 return StatusCode(500, response);
             }
@@ -117,9 +117,6 @@ namespace Accounts.API.Controllers
 
             try
             {
-                if (string.IsNullOrEmpty(client))
-                    throw new InvalidOperationException("client cannot be null.");
-
                 var dto = new ProfileDTO
                 {
                     ClientID = client,
@@ -129,13 +126,13 @@ namespace Accounts.API.Controllers
                 };
                 var factory = AccountsFactory.Instance.GetProfile(_configuration);
                 await factory.Save(dto.Adapt());
-                response.StatusCode = "200";
-                response.Data = response.StatusCode;
+                response.StatusCode = 200;
+                response.Data = "Profile created with success.";
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                response.StatusCode = "500";
+                response.StatusCode = 500;
                 response.Messages.Add(ResponseMessage.Create(ex, responseCode));
                 return StatusCode(500, response);
             }
@@ -159,18 +156,15 @@ namespace Accounts.API.Controllers
 
             try
             {
-                if (string.IsNullOrEmpty(client))
-                    throw new InvalidOperationException("client cannot be null.");
-
                 var factory = AccountsFactory.Instance.GetProfile(_configuration);
                 await factory.Delete(client, id);
-                response.StatusCode = "200";
-                response.Data = response.StatusCode;
+                response.StatusCode = 200;
+                response.Data = "Profile deleted with success.";
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                response.StatusCode = "500";
+                response.StatusCode = 500;
                 response.Messages.Add(ResponseMessage.Create(ex, responseCode));
                 return StatusCode(500, response);
             }
@@ -195,49 +189,15 @@ namespace Accounts.API.Controllers
 
             try
             {
-                if (string.IsNullOrEmpty(client))
-                    throw new InvalidOperationException("client cannot be null.");
-
                 var factory = AccountsFactory.Instance.GetSaveProfileGrants(_configuration);
                 await factory.Save(client, id, request.GrantIDs);
-                response.StatusCode = "200";
-                response.Data = response.StatusCode;
+                response.StatusCode = 200;
+                response.Data = "Grant(s) added with success.";
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                response.StatusCode = "500";
-                response.Messages.Add(ResponseMessage.Create(ex, responseCode));
-                return StatusCode(500, response);
-            }
-        }
-        /// <summary>
-        /// Clears the profile cache.
-        /// </summary>
-        /// <returns>The clear proccess status code.</returns>
-        /// <param name="client">Client identifier.</param>
-        /// <response code="200">Clears was successful.</response>
-        /// <response code="500">Internal Server Error. See response message for details.</response>
-        [Produces("application/json")]
-        [ProducesResponseType(typeof(ClearCacheResponse), 200)]
-        [ProducesResponseType(typeof(ClearCacheResponse), 500)]
-        [HttpDelete("cache")]
-        public ActionResult<ClearCacheResponse> ClearCache([FromHeader]string client)
-        {
-            ClearCacheResponse response = new ClearCacheResponse();
-            string cacheKey = $"GET_PROFILES_{client}";
-            string responseCode = $"CLEAR_PROFILE_CACHE_{client}";
-
-            try
-            {
-                RemoveCache(cacheKey);
-                response.StatusCode = "200";
-                response.Data = response.StatusCode;
-                return response;
-            }
-            catch (Exception ex)
-            {
-                response.StatusCode = "500";
+                response.StatusCode = 500;
                 response.Messages.Add(ResponseMessage.Create(ex, responseCode));
                 return StatusCode(500, response);
             }

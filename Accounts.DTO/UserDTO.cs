@@ -16,5 +16,6 @@ namespace Accounts.DTO
         public List<ProfileDTO> Profiles { get; set; } = new List<ProfileDTO>();
         public List<GrantDTO> Grants { get; set; } = new List<GrantDTO>();
         public bool Active { get; set; }
+        public string Token { get; set; }
     }
 }

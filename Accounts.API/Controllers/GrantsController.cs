@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Accounts.Adapter;
-using Accounts.API.Messages;
+using Accounts.API.Filters;
 using Accounts.API.Messages.Grants;
 using Accounts.DI;
 using Accounts.DTO;
@@ -11,11 +12,12 @@ using Microsoft.Extensions.Configuration;
 
 namespace Accounts.API.Controllers
 {
+    [ClientFilter]
     [Route("[controller]")]
-    public class GrantsController : BaseController
+    public class GrantsController : CachedController
     {
-        public GrantsController(IConfiguration configuration)
-            : base(configuration)
+        public GrantsController(IConfiguration configuration, [FromServices]RedisDTO redis)
+            : base(configuration, redis)
         { }
         /// <summary>
         /// Get all grants.
@@ -30,38 +32,29 @@ namespace Accounts.API.Controllers
         [HttpGet]
         public ActionResult<GetGrantsResponse> Get([FromHeader]string client)
         {
-            GetGrantsResponse response;
+            GetGrantsResponse response = new GetGrantsResponse();
             string responseCode = $"GET_GRANTS_{client}";
             string cacheKey = responseCode;
 
             try
             {
-                if (string.IsNullOrEmpty(client))
-                    throw new InvalidOperationException("client cannot be null.");
-
                 if (ExistsInCache(cacheKey))
-                    response = GetCache<GetGrantsResponse>(cacheKey);
+                    response.Data = GetFromCache<List<GrantDTO>>(cacheKey);
                 else
                 {
                     var factory = AccountsFactory.Instance.GetGrant(_configuration);
                     var grants = factory.GetGrants(client);
-                    response = new GetGrantsResponse
-                    {
-                        StatusCode = "200"
-                    };
                     grants.ForEach(grant =>
                         response.Data.Add(grant.Adapt()));
-                    SetCache(cacheKey, response);
+                    SetToCache(cacheKey, response.Data);
                 }
 
+                response.StatusCode = 200;
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                response = new GetGrantsResponse
-                {
-                    StatusCode = "500"
-                };
+                response.StatusCode = 500;
                 response.Messages.Add(ResponseMessage.Create(ex, responseCode));
                 return StatusCode(500, response);
             }
@@ -82,18 +75,26 @@ namespace Accounts.API.Controllers
         {
             GetGrantResponse response = new GetGrantResponse();
             string responseCode = $"GET_GRANT_{client}_{id}";
+            string cacheKey = responseCode;
 
             try
             {
-                var factory = AccountsFactory.Instance.GetGrant(_configuration);
-                var grant = factory.GetGrant(client, id);
-                response.StatusCode = "200";
-                response.Data = grant.Adapt();
+                if (ExistsInCache(cacheKey))
+                    response.Data = GetFromCache<GrantDTO>(cacheKey);
+                else
+                {
+                    var factory = AccountsFactory.Instance.GetGrant(_configuration);
+                    var grant = factory.GetGrant(client, id);
+                    response.Data = grant.Adapt();
+                    SetToCache(cacheKey, response.Data);
+                }
+
+                response.StatusCode = 200;
                 return response;
             }
             catch (Exception ex)
             {
-                response.StatusCode = "500";
+                response.StatusCode = 500;
                 response.Messages.Add(ResponseMessage.Create(ex, responseCode));
                 return StatusCode(500, response);
             }
@@ -112,37 +113,28 @@ namespace Accounts.API.Controllers
         [HttpGet("code/{code}")]
         ActionResult<GetGrantResponse> Get([FromHeader]string client, [FromRoute]string code)
         {
-            GetGrantResponse response;
+            GetGrantResponse response = new GetGrantResponse();
             string responseCode = $"GET_GRANT_{client}_{code}";
             string cacheKey = responseCode;
 
             try
             {
-                if (string.IsNullOrEmpty(client))
-                    throw new InvalidOperationException("client cannot be null.");
-
                 if (ExistsInCache(cacheKey))
-                    response = GetCache<GetGrantResponse>(cacheKey);
+                    response.Data = GetFromCache<GrantDTO>(cacheKey);
                 else
                 {
                     var factory = AccountsFactory.Instance.GetGrant(_configuration);
                     var grant = factory.GetGrant(client, code);
-                    response = new GetGrantResponse
-                    {
-                        StatusCode = "200",
-                        Data = grant.Adapt()
-                    };
-                    SetCache(cacheKey, response, 10080);
+                    response.Data = grant.Adapt();
+                    SetToCache(cacheKey, response.Data);
                 }
 
+                response.StatusCode = 200;
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                response = new GetGrantResponse
-                {
-                    StatusCode = "500"
-                };
+                response.StatusCode = 500;
                 response.Messages.Add(ResponseMessage.Create(ex, responseCode));
                 return StatusCode(500, response);
             }
@@ -166,9 +158,6 @@ namespace Accounts.API.Controllers
 
             try
             {
-                if (string.IsNullOrEmpty(client))
-                    throw new InvalidOperationException("client cannot be null.");
-
                 var dto = new GrantDTO
                 {
                     ClientID = client,
@@ -180,13 +169,13 @@ namespace Accounts.API.Controllers
                 };
                 var factory = AccountsFactory.Instance.GetGrant(_configuration);
                 await factory.Save(dto.Adapt());
-                response.StatusCode = "200";
-                response.Data = response.StatusCode;
+                response.StatusCode = 200;
+                response.Data = "Grant created with success.";
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                response.StatusCode = "500";
+                response.StatusCode = 500;
                 response.Messages.Add(ResponseMessage.Create(ex, responseCode));
                 return StatusCode(500, response);
             }
@@ -210,49 +199,15 @@ namespace Accounts.API.Controllers
 
             try
             {
-                if (string.IsNullOrEmpty(client))
-                    throw new InvalidOperationException("client cannot be null.");
-
                 var factory = AccountsFactory.Instance.GetGrant(_configuration);
                 await factory.Delete(client, id);
-                response.StatusCode = "200";
-                response.Data = response.StatusCode;
+                response.StatusCode = 200;
+                response.Data = "Grant deleted with success.";
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                response.StatusCode = "500";
-                response.Messages.Add(ResponseMessage.Create(ex, responseCode));
-                return StatusCode(500, response);
-            }
-        }
-        /// <summary>
-        /// Clears the grant cache.
-        /// </summary>
-        /// <returns>The clear proccess status code.</returns>
-        /// <param name="client">Client identifier.</param>
-        /// <response code="200">Clears was successful.</response>
-        /// <response code="500">Internal Server Error. See response message for details.</response>
-        [Produces("application/json")]
-        [ProducesResponseType(typeof(ClearCacheResponse), 200)]
-        [ProducesResponseType(typeof(ClearCacheResponse), 500)]
-        [HttpDelete("cache")]
-        public ActionResult<ClearCacheResponse> ClearCache([FromHeader]string client)
-        {
-            ClearCacheResponse response = new ClearCacheResponse();
-            string cacheKey = $"GET_GRANTS_{client}";
-            string responseCode = $"CLEAR_GRANT_CACHE_{client}";
-
-            try
-            {
-                RemoveCache(cacheKey);
-                response.StatusCode = "200";
-                response.Data = response.StatusCode;
-                return response;
-            }
-            catch (Exception ex)
-            {
-                response.StatusCode = "500";
+                response.StatusCode = 500;
                 response.Messages.Add(ResponseMessage.Create(ex, responseCode));
                 return StatusCode(500, response);
             }
