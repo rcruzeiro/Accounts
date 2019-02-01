@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.IO.Compression;
 using System.Reflection;
 using Accounts.API.Services;
 using Accounts.DTO;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -29,26 +31,20 @@ namespace Accounts.API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton(Configuration);
-            services.AddSwaggerGen(s =>
-            {
-                s.SwaggerDoc("v1", new Info
-                {
-                    Title = "User Repository",
-                    Version = "v1",
-                    Description = "Microservice for storing user accounts with OAuth framework."
-                });
-                string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                s.IncludeXmlComments(xmlPath);
-            });
-
-            #region Redis configuration
-            var redisConfiguration = new RedisDTO();
-            new ConfigureFromConfigurationOptions<RedisDTO>(
-                Configuration.GetSection("Redis")).Configure(redisConfiguration);
-            services.AddSingleton(redisConfiguration);
+            #region Healthcheck configuration
+            services.AddHealthChecks();
             #endregion
-
+            #region Compression configuration
+            services.Configure<GzipCompressionProviderOptions>(options =>
+            {
+                options.Level = CompressionLevel.Optimal;
+            });
+            services.AddResponseCompression(options =>
+            {
+                options.Providers.Add<GzipCompressionProvider>();
+                options.EnableForHttps = true;
+            });
+            #endregion
             #region JWT configuration
             var signingConfigurations = new SigninConfiguration();
             services.AddSingleton(signingConfigurations);
@@ -82,7 +78,26 @@ namespace Accounts.API
                                             .RequireAuthenticatedUser().Build());
             });
             #endregion
-
+            #region Redis configuration
+            var redisConfiguration = new RedisDTO();
+            new ConfigureFromConfigurationOptions<RedisDTO>(
+                Configuration.GetSection("Redis")).Configure(redisConfiguration);
+            services.AddSingleton(redisConfiguration);
+            #endregion
+            #region Swagger configuration
+            services.AddSwaggerGen(s =>
+            {
+                s.SwaggerDoc("v1", new Info
+                {
+                    Title = "User Repository",
+                    Version = "v1",
+                    Description = "Microservice for storing user accounts with OAuth framework."
+                });
+                string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                s.IncludeXmlComments(xmlPath);
+            });
+            #endregion
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
 
@@ -95,9 +110,11 @@ namespace Accounts.API
                 app.UseExceptionHandler("/error");
 
             app.UseStatusCodePages();
+            app.UseHealthChecks("/status");
             app.UseHttpsRedirection();
-            app.UseMvc();
             app.UseStaticFiles();
+            app.UseResponseCompression();
+            app.UseMvc();
             app.UseSwagger();
             app.UseSwaggerUI(s =>
             {

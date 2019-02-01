@@ -9,15 +9,6 @@
     }
   },
   "profiles": {
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "launchBrowser": false,
-      "launchUrl": "docs",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "DB_CONNECTION_NAME": "Local"
-      }
-    },
     "Accounts.API": {
       "commandName": "Project",
       "launchBrowser": true,
